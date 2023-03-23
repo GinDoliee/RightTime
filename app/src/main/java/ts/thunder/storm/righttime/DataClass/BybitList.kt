@@ -1,7 +1,5 @@
 package ts.thunder.storm.righttime.DataClass
 
-import com.google.gson.annotations.SerializedName
-
 // https://api.bybit.com/spot/v3/public/quote/ticker/24hr
 
 data class BybitList(
