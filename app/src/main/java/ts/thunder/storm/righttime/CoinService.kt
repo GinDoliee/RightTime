@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.icu.text.DecimalFormat
 import android.util.Log
 import android.widget.TextView
+import com.google.firebase.firestore.util.Util.comparator
+
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
@@ -17,8 +19,6 @@ import ts.thunder.storm.righttime.DataClass.*
 import java.lang.Math.abs
 
 class CoinService private constructor() {
-
-
 
     companion object {
         private var instance: CoinService? = null
@@ -99,6 +99,11 @@ class CoinService private constructor() {
     private var CoinSecondList = mutableListOf<Coin>()
 
 
+    fun GetCurrency():Double{
+        return CurrentCurrency
+    }
+
+
     fun GetCoinList():List<String>{
         return CoinList
     }
@@ -141,35 +146,56 @@ class CoinService private constructor() {
 
 
     fun GetAllUpbit(callback: (Boolean)->Unit){
-        ServiceUpbit.getCoinAllInfo().enqueue(object :Callback<List<UpbitList>>{
-            override fun onResponse(call: Call<List<UpbitList>>, response: Response<List<UpbitList>>) {
+        scopeUpbit.launch {
+            ServiceUpbit.getCoinAllInfo().enqueue(object : Callback<List<UpbitList>> {
+                override fun onResponse(
+                    call: Call<List<UpbitList>>,
+                    response: Response<List<UpbitList>>
+                ) {
 
-                for(i in 0 until response.body()!!.size){
+                    for (i in 0 until response.body()!!.size) {
 
-                    var temp = response.body()!!.get(i).market
-                    if(temp.contains("KRW-") == true){
-                        CoinFirstList.add(Coin(temp.substring(4,temp.length)))
+                        var temp = response.body()!!.get(i).market
+                        if (temp.contains("KRW-") == true) {
+                            CoinFirstList.add(Coin(temp.substring(4, temp.length)))
+                        }
                     }
+
+                    Log.d("Hey", "CoinListFirst = ${CoinFirstList}")
+                    callback.invoke(true)
                 }
 
-                Log.d("Hey", "CoinListFirst = ${CoinFirstList}")
-                callback.invoke(true)
-            }
-
-            override fun onFailure(call: Call<List<UpbitList>>, t: Throwable) {
-                callback.invoke(false)
-           }
-        })
+                override fun onFailure(call: Call<List<UpbitList>>, t: Throwable) {
+                    callback.invoke(false)
+                }
+            })
+        }
     }
 
     fun UpdateBybit(index:Int, callback: (Boolean) -> Unit){
+
+
+        scopeBybit.launch {
+
 
         ServiceBybit.getCoinInfo(CoinList.get(index)+"USDT").enqueue(object :Callback<Bybit>{
             override fun onResponse(call: Call<Bybit>, response: Response<Bybit>) {
 
                 if(response.body() != null){
-                    val price = response.body()!!.result.lp.toDouble() * CurrentCurrency
-                    CoinSecondList.set(index,Coin(CoinList.get(index),price ))
+
+                    val temp = response.body()
+                    val price = temp!!.result.lp.toDouble() * CurrentCurrency
+                    val change = temp.result.o.toFloat()
+                    val absChange = temp.result.o.toDouble() - temp.result.lp.toDouble()
+
+                    var comp = 0.0
+
+                    if(CoinFirstList.get(index).price > 0 ) {
+                        comp = ((price / CoinFirstList.get(index).price) -1)*100
+                    }
+
+                    CoinSecondList.set(index,Coin(CoinList.get(index), price,change,absChange,comp))
+
                     callback.invoke(true)
                 }else{
                     callback.invoke(false)
@@ -180,19 +206,42 @@ class CoinService private constructor() {
                 callback.invoke(false)
             }
         })
+        }
     }
 
 
 
-    fun UpdateUpbit(index:Int, callback: (Boolean) -> Unit){
+    fun UpdateUpbit(callback: (Boolean) -> Unit){
+        var coins : String = String()
+        for(i in 0 until CoinList.size){
+            coins += "KRW-"
+            coins += CoinList.get(i)
+            coins += ","
+        }
+        coins = coins.substring(0, coins.length-1)
 
-            ServiceUpbit.getCoinInfo("KRW-" + CoinList.get(index)).enqueue(object : Callback<List<Upbit>> {
+            ServiceUpbit.getCoinInfo(coins).enqueue(object : Callback<List<Upbit>> {
                 override fun onResponse(call: Call<List<Upbit>>,response: Response<List<Upbit>>
                 ) {
                     if(response.body() != null){
-                        val price = response.body()!!.get(0).trade_price
+                        for( i in 0 until response.body()!!.size){
+                            val temp = response.body()!!.get(i)
+                            val price = temp.trade_price
+                            val change = (temp?.signed_change_rate.toString()).toFloat() * 100
+                            var absChange = abs(temp.signed_change_price)
 
-                        CoinFirstList.set(index,Coin(CoinList.get(index), price))
+                            if(temp.change.equals("RISE") == false){
+                                absChange = absChange * -1
+                            }
+                            var comp = 0.0
+
+                            if(CoinSecondList.get(i).price > 0 ) {
+                                comp = ((price / CoinSecondList.get(i).price) -1)*100
+                            }
+
+                            CoinFirstList.set(i,Coin(CoinList.get(i), price,change,absChange,comp))
+                        }
+
                         callback.invoke(true)
                     }else{
                         callback.invoke(false)
@@ -215,10 +264,7 @@ class CoinService private constructor() {
                     for(i in 0 until response.body()!!.result.list.size){
                         var temp = response.body()!!.result.list.get(i)
                         if(temp.s.substring(temp.s.length-4,temp.s.length).equals("USDT") == true){
-
-                         if(temp.s.substring(0,temp.s.length-4).equals("BTC")==false) {
-                             CoinSecondList.add(Coin(temp.s.substring(0, temp.s.length - 4)))
-                         }
+                            CoinSecondList.add(Coin(temp.s.substring(0, temp.s.length - 4)))
                         }
                     }
 
@@ -233,17 +279,24 @@ class CoinService private constructor() {
     }
 
     fun GetCommonCoinList(callback: ()->Unit){
+
+        val exceptList = mutableListOf("BTC","ETH","TON","SRM","BTG","BTT")
+
         for(i in 0 until CoinFirstList.size){
             for(j in 0 until CoinSecondList.size){
-                if(CoinFirstList.get(i).name.equals(CoinSecondList.get(j).name)) {
+                if(CoinFirstList.get(i).name.equals(CoinSecondList.get(j).name) == true) {
                     CoinList.add(CoinFirstList.get(i).name)
                 }
             }
         }
+
+        CoinList.removeAll(exceptList)
+
         Log.d("Hey", "coinList = ${CoinList}")
         Log.d("Hey", "coinList Size = ${CoinList.size}")
         CoinFirstList.clear()
         CoinSecondList.clear()
+
 
         for(i in 0 until CoinList.size){
             CoinFirstList.add(Coin(CoinList.get(i)))

@@ -17,7 +17,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/textNameRight"
+            android:id="@+id/textNameFirst"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -25,12 +25,13 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/textNameLeft"
+            android:id="@+id/textNameSecond"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAlignment="center"
             android:textSize="12sp" />
+
 
     </LinearLayout>
 
@@ -39,8 +40,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+
         <TextView
-            android:id="@+id/textCompare"
+            android:id="@+id/textPriceLeftFirst"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -48,7 +50,7 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/textChange"
+            android:id="@+id/textPriceRightFirst"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -56,6 +58,30 @@
             android:textSize="12sp" />
 
 
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:id="@+id/textCompareLeft"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textCompareRight"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:textSize="12sp" />
 
 
     </LinearLayout>

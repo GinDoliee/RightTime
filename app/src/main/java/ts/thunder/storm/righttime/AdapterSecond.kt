@@ -11,6 +11,7 @@ import ts.thunder.storm.righttime.databinding.ItemDataSecondBinding
 
 class AdapterSecond(val data: MutableList<Coin>):RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     val decimal = DecimalFormat("#,###.##")
+    val decimalCompare = DecimalFormat("#,###.###")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return HolderSecond(ItemDataSecondBinding.inflate(LayoutInflater.from(parent.context),parent,false))
@@ -20,10 +21,7 @@ class AdapterSecond(val data: MutableList<Coin>):RecyclerView.Adapter<RecyclerVi
         val binding = (holder as HolderSecond).binding
 
         val item = data.get(position)
-        binding.textName.text = item.name
-        binding.textPrice.text = decimal.format(item.price).toString()
-        binding.textChange.text = item.change.toString()
-        binding.textCompare.text = item.compare.toString()
+
     }
 
     override fun getItemCount(): Int {
