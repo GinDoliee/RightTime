@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("Hey", "$it")
         })
 
+
         binding.viewpager.adapter = MyAdapter(this)
     }
 
@@ -36,8 +37,8 @@ class MyAdapter(activity: FragmentActivity): FragmentStateAdapter(activity){
 
     val FragmentList:List<Fragment>
     init{
-        //FragmentList = listOf(FragmentFirst(),FragmentSecond(),FragmentThird())
-        FragmentList = listOf(FragmentFirst())
+        FragmentList = listOf(FragmentFirst(),FragmentSecond(),FragmentThird())
+        //FragmentList = listOf(FragmentFirst())
     }
 
     override fun getItemCount(): Int {

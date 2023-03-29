@@ -71,8 +71,7 @@ class FragmentFirst : Fragment() {
 
         GlobalScope.launch(Dispatchers.Main) {
             channelBybit.consumeEach {
-                if(it < mainActivity.SingleCoinService.GetCoinList().size){
-                    Thread.sleep(50)
+                if(it < mainActivity.SingleCoinService.GetCoinListFirstPage().size){
                     UpdateByBit(it)
                 }else{
                     UpdateByBit(0)
@@ -96,8 +95,6 @@ class FragmentFirst : Fragment() {
         binding.recyclerMainView.layoutManager = LinearLayoutManager(activity)
         binding.recyclerMainView.adapter = AdapterFirst(CoinCompList)
 
-
-
     }
 
 
@@ -115,7 +112,6 @@ class FragmentFirst : Fragment() {
                     }
                 }
             }
-
         }
     }
 
@@ -132,30 +128,26 @@ class FragmentFirst : Fragment() {
                     }
                 }
             })
-
         }
     }
 
     fun SetMainData(){
 
-
-
-
         if(CoinFirstTempList.size == 0 || CoinSecondTempList.size ==0) {
-            for (i in 0 until mainActivity.SingleCoinService.GetCoinList().size) {
+            for (i in 0 until mainActivity.SingleCoinService.GetCoinListFirstPage().size) {
                 CoinFirstTempList.add(Coin("None"))
                 CoinSecondTempList.add(Coin("None"))
             }
         }
 
         val temp1 = mainActivity.SingleCoinService.GetCoinFirstList()
-        for(i in 0 until mainActivity.SingleCoinService.GetCoinList().size){
+        for(i in 0 until mainActivity.SingleCoinService.GetCoinListFirstPage().size){
             val cpy = temp1.get(i).copy()
             CoinFirstTempList.set(i,Coin(cpy.name,cpy.price,cpy.change,cpy.absChange,cpy.compare))
         }
 
         val temp2 = mainActivity.SingleCoinService.GetCoinSecondList()
-        for(i in 0 until mainActivity.SingleCoinService.GetCoinList().size){
+        for(i in 0 until mainActivity.SingleCoinService.GetCoinListFirstPage().size){
             val cpy = temp2.get(i).copy()
             CoinSecondTempList.set(i,Coin(cpy.name,cpy.price,cpy.change,cpy.absChange,cpy.compare))
         }
@@ -168,8 +160,6 @@ class FragmentFirst : Fragment() {
 
         Log.d("Hey","First After $CoinFirstTempList")
         Log.d("Hey","Second After $CoinSecondTempList")
-
-
 
 
         for(i in 0 until MAX){
